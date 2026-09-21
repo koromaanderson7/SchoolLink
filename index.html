@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchoolLink SL</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f7fb;
+      color: #172033;
+    }
+
+    .login {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: white;
+      width: 100%;
+      max-width: 420px;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .logo h1 {
+      font-size: 28px;
+    }
+
+    .logo p {
+      color: #667085;
+      margin-top: 6px;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 22px;
+      border: none;
+      border-radius: 8px;
+      background: #1769e0;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .error {
+      color: #d92d20;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .dashboard {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: white;
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e4e7ec;
+    }
+
+    .topbar h2 {
+      font-size: 20px;
+    }
+
+    .logout {
+      width: auto;
+      margin: 0;
+      padding: 9px 16px;
+      background: #344054;
+    }
+
+    .content {
+      padding: 25px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .card p {
+      color: #667085;
+      font-size: 14px;
+    }
+
+    .card h3 {
+      margin-top: 10px;
+      font-size: 28px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <section class="login" id="loginSection">
+    <div class="login-box">
+
+      <div class="logo">
+        <h1>SchoolLink SL</h1>
+        <p>School Management Portal</p>
+      </div>
+
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Enter your email">
+
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter your password">
+
+      <button onclick="login()">Sign In</button>
+
+      <div class="error" id="error"></div>
+
+    </div>
+  </section>
+
+
+  <!-- DASHBOARD -->
+  <section class="dashboard" id="dashboardSection">
+
+    <div class="topbar">
+      <h2>SchoolLink SL</h2>
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="content">
+
+      <div class="welcome">
+        <h1>Dashboard</h1>
+        <p>Welcome to your school management system.</p>
+      </div>
+
+      <div class="cards">
+
+        <div class="card">
+          <p>Total Students</p>
+          <h3 id="studentCount">0</h3>
+        </div>
+
+        <div class="card">
+          <p>Total Parents</p>
+          <h3 id="parentCount">0</h3>
+        </div>
+
+        <div class="card">
+          <p>Fees Paid</p>
+          <h3 id="feesPaid">Le 0</h3>
+        </div>
+
+        <div class="card">
+          <p>Outstanding Fees</p>
+          <h3 id="feesOutstanding">Le 0</h3>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+<script>
+
+  /*
+    IMPORTANT:
+    We will add your Supabase URL and ANON/PUBLIC key here
+    in the next step.
+
+    NEVER put your Supabase service_role key here.
+  */
+
+  const SUPABASE_URL = "YOUR_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+  async function login() {
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const error = document.getElementById("error");
+
+    error.textContent = "";
+
+    if (!email || !password) {
+      error.textContent = "Please enter your email and password.";
+      return;
+    }
+
+    const { data, error: loginError } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (loginError) {
+      error.textContent = loginError.message;
+      return;
+    }
+
+    showDashboard();
+  }
+
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    document.getElementById("dashboardSection").style.display = "none";
+    document.getElementById("loginSection").style.display = "flex";
+  }
+
+
+  function showDashboard() {
+
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+
+    loadDashboard();
+  }
+
+
+  async function checkSession() {
+
+    const { data } = await supabaseClient.auth.getSession();
+
+    if (data.session) {
+      showDashboard();
+    }
+
+  }
+
+
+  async function loadDashboard() {
+
+    // Students
+    const { count: students } =
+      await supabaseClient
+        .from("students")
+        .select("*", { count: "exact", head: true });
+
+    document.getElementById("studentCount").textContent =
+      students ?? 0;
+
+
+    // Parents
+    const { count: parents } =
+      await supabaseClient
+        .from("parents")
+        .select("*", { count: "exact", head: true });
+
+    document.getElementById("parentCount").textContent =
+      parents ?? 0;
+
+
+    // Fees
+    const { data: fees } =
+      await supabaseClient
+        .from("fees")
+        .select("amount_due, amount_paid");
+
+    if (fees) {
+
+      let paid = 0;
+      let due = 0;
+
+      fees.forEach(fee => {
+        paid += Number(fee.amount_paid || 0);
+        due += Number(fee.amount_due || 0);
+      });
+
+      document.getElementById("feesPaid").textContent =
+        "Le " + paid.toLocaleString();
+
+      document.getElementById("feesOutstanding").textContent =
+        "Le " + (due - paid).toLocaleString();
+    }
+
+  }
+
+
+  checkSession();
+
+</script>
+
+</body>
+</html>
